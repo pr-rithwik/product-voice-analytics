@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data — never commit raw or processed data
+data/raw/
+data/processed/
+
+# Models — checkpoints are too large for git
+models/
+*.pt
+*.pth
+*.bin
+*.ckpt
+
+# Credentials & secrets
+.env
+*.env
+secrets.json
+api_keys.py
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+
+# HuggingFace cache
+.cache/
+
+*_key.*
+
+requirements.txt
