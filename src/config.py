@@ -10,6 +10,12 @@ RAW_METADATA_PATH = ROOT / "data/raw/meta_Electronics.json.gz"
 PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
 
 
+# model paths
+TFIDF_PIPELINE_PATH = ROOT / "models/tfidf_pipeline.pkl"
+DISTILBERT_PATH = ROOT / "models/distilbert/"
+BEST_MODEL_REF_PATH = ROOT / "models/best_model_ref.txt"
+
+
 # sampling
 SAMPLE_SIZE = 100_000
 RANDOM_SEED = 42
@@ -23,3 +29,7 @@ CLASS_PROPORTIONS = {
 
 # train/test split
 TEST_SIZE = 0.2
+
+# distilbert
+DISTILBERT_MAX_LEN = 128
+DISTILBERT_BATCH_SIZE = 64
