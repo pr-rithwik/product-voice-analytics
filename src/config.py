@@ -33,3 +33,8 @@ TEST_SIZE = 0.2
 # distilbert
 DISTILBERT_MAX_LEN = 128
 DISTILBERT_BATCH_SIZE = 64
+
+# topic intelligence
+EMBED_MODEL = "all-MiniLM-L6-v2"
+N_TOPICS = 10
+N_BULLETS = 5
