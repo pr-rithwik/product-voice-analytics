@@ -26,6 +26,11 @@ CLASS_PROPORTIONS = {
     2: 0.70,  # positive (4-5 stars)
 }
 
+# data paths
+RAW_REVIEWS_PATH = ROOT / "data/raw/Electronics.json.gz"
+RAW_METADATA_PATH = ROOT / "data/raw/meta_Electronics.json.gz"
+PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
+
 
 # train/test split
 TEST_SIZE = 0.2
