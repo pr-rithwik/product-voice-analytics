@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import app as gr
 import joblib
 from sklearn.pipeline import Pipeline
+from huggingface_hub import HfApi, hf_hub_download
 
 from src.utils import stream_reviews_for_asin
 from src.pipeline.preprocess import clean_text
@@ -17,21 +18,32 @@ from src.config import (
     DISTILBERT_PATH
 )
 
-from huggingface_hub import hf_hub_download, snapshot_download
-
 HF_REPO = 'rithweek/product-voice-analytics-models'
 
-# download models if not already present
+api = HfApi()
 os.makedirs('models', exist_ok=True)
+os.makedirs(str(DISTILBERT_PATH), exist_ok=True)
 
-if not os.path.exists(TFIDF_VECTORIZER_PATH):
-    hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir='models')
+# download pkl files
+if not os.path.exists(str(TFIDF_VECTORIZER_PATH)):
+    hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir='models', local_dir_use_symlinks=False)
 
-if not os.path.exists(LR_MODEL_PATH):
-    hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir='models')
+if not os.path.exists(str(LR_MODEL_PATH)):
+    hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir='models', local_dir_use_symlinks=False)
 
-if not os.path.exists(DISTILBERT_PATH):
-    snapshot_download(repo_id=HF_REPO, local_dir='models/distilbert', allow_patterns='distilbert/*')
+# download distilbert files dynamically
+all_files        = api.list_repo_files(repo_id=HF_REPO, repo_type='model')
+distilbert_files = [f for f in all_files if f.startswith('distilbert/')]
+
+for filepath in distilbert_files:
+    local_path = os.path.join(str(DISTILBERT_PATH), os.path.basename(filepath))
+    if not os.path.exists(local_path):
+        hf_hub_download(
+            repo_id=HF_REPO,
+            filename=filepath,
+            local_dir='models',
+            local_dir_use_symlinks=False
+        )
 
 # load models once at startup
 vectorizer   = joblib.load(TFIDF_VECTORIZER_PATH)
