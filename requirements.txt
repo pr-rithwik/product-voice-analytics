@@ -29,4 +29,5 @@ ipykernel>=6.0.0
 
 pytest
 dotenv
+gradio
 huggingface_hub
