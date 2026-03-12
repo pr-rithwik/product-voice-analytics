@@ -45,6 +45,11 @@ for filepath in distilbert_files:
             local_dir_use_symlinks=False
         )
 
+#debug
+for root, dirs, files in os.walk('models'):
+    for file in files:
+        print(os.path.join(root, file))
+
 # load models once at startup
 vectorizer   = joblib.load(TFIDF_VECTORIZER_PATH)
 lr_model     = joblib.load(LR_MODEL_PATH)
