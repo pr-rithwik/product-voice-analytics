@@ -1,3 +1,6 @@
+# Central config for all project-wide constants.
+# Import from here instead of hardcoding values in individual modules.
+
 from pathlib import Path
 
 # repo root — all paths are relative to this
@@ -11,9 +14,10 @@ PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
 
 
 # model paths
-TFIDF_PIPELINE_PATH = ROOT / "models/tfidf_pipeline.pkl"
-DISTILBERT_PATH = ROOT / "models/distilbert/"
-BEST_MODEL_REF_PATH = ROOT / "models/best_model_ref.txt"
+TFIDF_VECTORIZER_PATH = ROOT / "models/tfidf_vectorizer.pkl"
+LR_MODEL_PATH         = ROOT / "models/lr_model.pkl"
+DISTILBERT_PATH       = ROOT / "models/distilbert/"
+BEST_MODEL_REF_PATH   = ROOT / "models/best_model_ref.txt"
 
 
 # sampling
@@ -26,18 +30,15 @@ CLASS_PROPORTIONS = {
     2: 0.70,  # positive (4-5 stars)
 }
 
-# data paths
-RAW_REVIEWS_PATH = ROOT / "data/raw/Electronics.json.gz"
-RAW_METADATA_PATH = ROOT / "data/raw/meta_Electronics.json.gz"
-PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
-
 
 # train/test split
 TEST_SIZE = 0.2
 
+
 # distilbert
 DISTILBERT_MAX_LEN = 128
 DISTILBERT_BATCH_SIZE = 64
+
 
 # topic intelligence
 EMBED_MODEL = "all-MiniLM-L6-v2"
