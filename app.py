@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import app as gr
+import gradio as gr
 import joblib
 from sklearn.pipeline import Pipeline
 from huggingface_hub import HfApi, hf_hub_download
@@ -44,11 +44,6 @@ for filepath in distilbert_files:
             local_dir='models',
             local_dir_use_symlinks=False
         )
-
-#debug
-for root, dirs, files in os.walk('models'):
-    for file in files:
-        print(os.path.join(root, file))
 
 # load models once at startup
 vectorizer   = joblib.load(TFIDF_VECTORIZER_PATH)
