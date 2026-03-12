@@ -57,6 +57,9 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
     df['clean_text'] = df['reviewText'].apply(clean_text)
+    df['clean_text'] = df['clean_text'].fillna('').astype(str)
+    # drop any rows where clean_text is empty — can happen if reviewText was malformed
+    df = df[df['clean_text'].str.strip().astype(bool)].reset_index(drop=True)
     return df
 
 

@@ -1,8 +1,10 @@
 import torch
 import joblib
 from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
+from sklearn.pipeline import Pipeline
 from src.config import (
-    TFIDF_PIPELINE_PATH,
+    TFIDF_VECTORIZER_PATH,
+    LR_MODEL_PATH,
     DISTILBERT_PATH,
     DISTILBERT_MAX_LEN,
     DISTILBERT_BATCH_SIZE,
@@ -36,9 +38,10 @@ def load_model(model_type: str) -> tuple:
         ValueError if model_type is not recognised
     """
     if model_type == 'tfidf':
-        pipeline = joblib.load(TFIDF_PIPELINE_PATH)
-        return pipeline, None
-
+        vectorizer = joblib.load(TFIDF_VECTORIZER_PATH)
+        lr_model   = joblib.load(LR_MODEL_PATH)
+        return Pipeline([('tfidf', vectorizer), ('lr', lr_model)]), None
+        
     elif model_type == 'distilbert':
         tokenizer = DistilBertTokenizerFast.from_pretrained(DISTILBERT_PATH)
         model     = DistilBertForSequenceClassification.from_pretrained(DISTILBERT_PATH)
