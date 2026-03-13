@@ -18,6 +18,7 @@ TFIDF_VECTORIZER_PATH = ROOT / "models/tfidf_vectorizer.pkl"
 LR_MODEL_PATH         = ROOT / "models/lr_model.pkl"
 DISTILBERT_PATH       = ROOT / "models/distilbert/"
 BEST_MODEL_REF_PATH   = ROOT / "models/best_model_ref.txt"
+DEMO_CACHE_PATH = ROOT / "models/demo_cache.json"
 
 
 # sampling
