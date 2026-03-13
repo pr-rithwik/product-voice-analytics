@@ -1,11 +1,9 @@
 # Central config for all project-wide constants.
 # Import from here instead of hardcoding values in individual modules.
-
+import os
 from pathlib import Path
 
-# repo root — all paths are relative to this
 ROOT = Path(__file__).resolve().parent.parent
-
 
 # data paths
 RAW_REVIEWS_PATH = ROOT / "data/raw/Electronics.json.gz"
@@ -14,11 +12,11 @@ PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
 
 
 # model paths
-TFIDF_VECTORIZER_PATH = ROOT / "models/tfidf_vectorizer.pkl"
-LR_MODEL_PATH         = ROOT / "models/lr_model.pkl"
-DISTILBERT_PATH       = ROOT / "models/distilbert/"
-BEST_MODEL_REF_PATH   = ROOT / "models/best_model_ref.txt"
-DEMO_CACHE_PATH = ROOT / "models/demo_cache.json"
+DISTILBERT_PATH = Path(os.environ.get('DISTILBERT_PATH', str(ROOT / 'models/distilbert')))
+TFIDF_VECTORIZER_PATH = Path(os.environ.get('TFIDF_VECTORIZER_PATH', str(ROOT / 'models/tfidf_vectorizer.pkl')))
+LR_MODEL_PATH = Path(os.environ.get('LR_MODEL_PATH', str(ROOT / 'models/lr_model.pkl')))
+# BEST_MODEL_REF_PATH = Path(os.environ.get('BEST_MODEL_REF_PATH', str(ROOT / 'models/best_model_ref.txt')))
+DEMO_CACHE_PATH = Path(os.environ.get('DEMO_CACHE_PATH', str(ROOT / 'models/demo_cache.json')))
 
 
 # sampling

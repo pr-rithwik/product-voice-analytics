@@ -70,15 +70,16 @@ PRODUCT_NAMES    = {v['name']: k for k, v in DEMO_CACHE.items()}
 DROPDOWN_CHOICES = ['-- Select a demo product --'] + list(PRODUCT_NAMES.keys()) + ['Custom ASIN']
 
 
-def format_results(total, breakdown, praise, complaints, source):
+def format_results(total, breakdown, praise, complaints, source, model_used='TF-IDF + LR'):
     sentiment_summary = (
         f"Source: {source}\n"
+        f"Model: {model_used}\n"
         f"Total reviews analysed: {total:,}\n\n"
         f"✅ Positive: {breakdown['positive']}%\n"
         f"😐 Neutral:  {breakdown['neutral']}%\n"
         f"❌ Negative: {breakdown['negative']}%"
     )
-    praise_text    = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
+    praise_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
     complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaints, 1)])
     return sentiment_summary, praise_text, complaint_text
 
@@ -94,7 +95,8 @@ def analyse(product_selection, custom_asin, model_choice):
             result['breakdown'],
             result['praise'],
             result['complaints'],
-            source='pre-computed cache'
+            source='pre-computed cache',
+            model_used='TF-IDF + LR (pre-computed)'
         )
         return f'✅ Loaded: {product_selection}', sentiment_summary, praise_text, complaint_text
 
@@ -129,7 +131,8 @@ def analyse(product_selection, custom_asin, model_choice):
         praise, complaints = generate_bullets(topic_reviews)
 
         sentiment_summary, praise_text, complaint_text = format_results(
-            total, breakdown, praise, complaints, source='live analysis'
+            total, breakdown, praise, complaints, source='live analysis',
+            model_used=model_choice
         )
         return f'✅ Done: {asin} ({total:,} reviews)', sentiment_summary, praise_text, complaint_text
 
