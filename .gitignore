@@ -59,9 +59,15 @@ Thumbs.db
 logs/
 *.log
 
+*_key.*
+main.ipynb
+tmp/
+
 # HuggingFace cache
 .cache/
 
-*_key.*
-
-main.ipynb
+# Kaggle
+dataset-metadata*.json
+.kaggleignore
+upload_app.sh
+upload_src.sh
