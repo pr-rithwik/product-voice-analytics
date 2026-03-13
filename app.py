@@ -3,6 +3,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import json
 import gradio as gr
 import joblib
 from sklearn.pipeline import Pipeline
@@ -14,114 +15,160 @@ from src.pipeline.sentiment import load_model, predict_tfidf, predict_distilbert
 from src.intelligence.clustering import embed_reviews, cluster_reviews, build_topic_reviews
 from src.intelligence.summarizer import generate_bullets
 from src.config import (
-    RAW_REVIEWS_PATH, TFIDF_VECTORIZER_PATH, LR_MODEL_PATH,
-    DISTILBERT_PATH
+    RAW_REVIEWS_PATH,
+    TFIDF_VECTORIZER_PATH,
+    LR_MODEL_PATH,
+    DISTILBERT_PATH,
+    DEMO_CACHE_PATH
 )
 
 HF_REPO = 'rithweek/product-voice-analytics-models'
 
-api = HfApi()
-os.makedirs('models', exist_ok=True)
-os.makedirs(str(DISTILBERT_PATH), exist_ok=True)
+def download_artifacts():
+    api = HfApi()
+    os.makedirs(DISTILBERT_PATH, exist_ok=True)
 
-# download pkl files
-if not os.path.exists(str(TFIDF_VECTORIZER_PATH)):
-    hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir='models', local_dir_use_symlinks=False)
+    if not os.path.exists(str(TFIDF_VECTORIZER_PATH)):
+        hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir='models', local_dir_use_symlinks=False)
 
-if not os.path.exists(str(LR_MODEL_PATH)):
-    hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir='models', local_dir_use_symlinks=False)
+    if not os.path.exists(str(LR_MODEL_PATH)):
+        hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir='models', local_dir_use_symlinks=False)
 
-# download distilbert files dynamically
-all_files        = api.list_repo_files(repo_id=HF_REPO, repo_type='model')
-distilbert_files = [f for f in all_files if f.startswith('distilbert/')]
+    DISTILBERT_CONFIG_PATH = os.path.join(DISTILBERT_PATH, 'config.json')
+    if not os.path.exists(DISTILBERT_CONFIG_PATH):
+        all_files        = api.list_repo_files(repo_id=HF_REPO, repo_type='model')
+        distilbert_files = [f for f in all_files if f.startswith('distilbert/')]
+        for filepath in distilbert_files:
+            local_path = os.path.join(DISTILBERT_PATH, os.path.basename(filepath))
+            if not os.path.exists(local_path):
+                hf_hub_download(
+                    repo_id=HF_REPO,
+                    filename=filepath,
+                    local_dir=str(DISTILBERT_PATH),
+                    local_dir_use_symlinks=False
+                )
 
-for filepath in distilbert_files:
-    local_path = os.path.join(str(DISTILBERT_PATH), os.path.basename(filepath))
-    if not os.path.exists(local_path):
-        hf_hub_download(
-            repo_id=HF_REPO,
-            filename=filepath,
-            local_dir='models',
-            local_dir_use_symlinks=False
-        )
+    if not os.path.exists(DEMO_CACHE_PATH):
+        hf_hub_download(repo_id=HF_REPO, filename='demo_cache.json', local_dir='models', local_dir_use_symlinks=False)
 
-# load models once at startup
-vectorizer   = joblib.load(TFIDF_VECTORIZER_PATH)
-lr_model     = joblib.load(LR_MODEL_PATH)
+
+download_artifacts()
+
+
+# load models
+vectorizer     = joblib.load(str(TFIDF_VECTORIZER_PATH))
+lr_model       = joblib.load(str(LR_MODEL_PATH))
 tfidf_pipeline = Pipeline([('tfidf', vectorizer), ('lr', lr_model)])
 
 distilbert_model, distilbert_tokenizer = load_model('distilbert')
 
+# load cache
+with open(DEMO_CACHE_PATH) as f:
+    DEMO_CACHE = json.load(f)
 
-def analyse(asin: str, model_choice: str) -> tuple:
-    asin = asin.strip().upper()
+PRODUCT_NAMES    = {v['name']: k for k, v in DEMO_CACHE.items()}
+DROPDOWN_CHOICES = ['-- Select a demo product --'] + list(PRODUCT_NAMES.keys()) + ['Custom ASIN']
 
-    if not asin:
-        return 'Please enter an ASIN.', '', '', ''
 
-    # stream reviews
-    reviews = stream_reviews_for_asin(str(RAW_REVIEWS_PATH), asin)
-    if not reviews:
-        return f'No reviews found for ASIN {asin}.', '', '', ''
-
-    # preprocess
-    clean_reviews = [clean_text(r) for r in reviews]
-    clean_reviews = [r for r in clean_reviews if r]
-
-    # sentiment
-    if model_choice == 'DistilBERT':
-        labels = predict_distilbert(distilbert_model, distilbert_tokenizer, clean_reviews)
-    else:
-        labels = predict_tfidf(tfidf_pipeline, clean_reviews)
-
-    total = len(labels)
-    pos   = round(labels.count('positive') / total * 100, 1)
-    neu   = round(labels.count('neutral')  / total * 100, 1)
-    neg   = round(labels.count('negative') / total * 100, 1)
-
+def format_results(total, breakdown, praise, complaints, source):
     sentiment_summary = (
+        f"Source: {source}\n"
         f"Total reviews analysed: {total:,}\n\n"
-        f"✅ Positive: {pos}%\n"
-        f"😐 Neutral:  {neu}%\n"
-        f"❌ Negative: {neg}%"
+        f"✅ Positive: {breakdown['positive']}%\n"
+        f"😐 Neutral:  {breakdown['neutral']}%\n"
+        f"❌ Negative: {breakdown['negative']}%"
     )
+    praise_text    = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
+    complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaints, 1)])
+    return sentiment_summary, praise_text, complaint_text
 
-    # topic intelligence
-    embeddings    = embed_reviews(reviews)
-    topics, _     = cluster_reviews(reviews, embeddings)
-    topic_reviews = build_topic_reviews(reviews, topics)
 
-    praise_bullets, complaint_bullets = generate_bullets(topic_reviews)
+def analyse(product_selection, custom_asin, model_choice):
 
-    praise_text    = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise_bullets, 1)])
-    complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaint_bullets, 1)])
+    # cached demo product
+    if product_selection and product_selection not in ['-- Select a demo product --', 'Custom ASIN']:
+        asin   = PRODUCT_NAMES[product_selection]
+        result = DEMO_CACHE[asin]
+        sentiment_summary, praise_text, complaint_text = format_results(
+            result['total'],
+            result['breakdown'],
+            result['praise'],
+            result['complaints'],
+            source='pre-computed cache'
+        )
+        return f'✅ Loaded: {product_selection}', sentiment_summary, praise_text, complaint_text
 
-    return f'Found {total:,} reviews for {asin}', sentiment_summary, praise_text, complaint_text
+    # custom ASIN — full live pipeline
+    if product_selection == 'Custom ASIN' or custom_asin.strip():
+        asin = custom_asin.strip().upper()
+        if not asin:
+            return 'Please enter a custom ASIN.', '', '', ''
+
+        reviews = stream_reviews_for_asin(str(RAW_REVIEWS_PATH), asin)
+        if not reviews:
+            return f'No reviews found for ASIN {asin}.', '', '', ''
+
+        clean_reviews = [clean_text(r) for r in reviews]
+        clean_reviews = [r for r in clean_reviews if r]
+
+        if model_choice == 'DistilBERT':
+            labels = predict_distilbert(distilbert_model, distilbert_tokenizer, clean_reviews)
+        else:
+            labels = predict_tfidf(tfidf_pipeline, clean_reviews)
+
+        total     = len(labels)
+        breakdown = {
+            'positive': round(labels.count('positive') / total * 100, 1),
+            'neutral':  round(labels.count('neutral')  / total * 100, 1),
+            'negative': round(labels.count('negative') / total * 100, 1),
+        }
+
+        embeddings    = embed_reviews(reviews)
+        topics, _     = cluster_reviews(reviews, embeddings)
+        topic_reviews = build_topic_reviews(reviews, topics)
+        praise, complaints = generate_bullets(topic_reviews)
+
+        sentiment_summary, praise_text, complaint_text = format_results(
+            total, breakdown, praise, complaints, source='live analysis'
+        )
+        return f'✅ Done: {asin} ({total:,} reviews)', sentiment_summary, praise_text, complaint_text
+
+    return 'Please select a product or enter a custom ASIN.', '', '', ''
 
 
 with gr.Blocks(title='Product Voice Analytics') as demo:
     gr.Markdown('# 🔍 Product Voice Analytics')
-    gr.Markdown('Enter an Amazon Electronics ASIN to get sentiment breakdown and key themes from customer reviews.')
+    gr.Markdown('Select a demo product for instant results, or enter any Amazon Electronics ASIN for a full live analysis.')
 
     with gr.Row():
-        asin_input    = gr.Textbox(label='Product ASIN', placeholder='e.g. B07XJ8C8F5')
-        model_choice  = gr.Radio(['TF-IDF + LR', 'DistilBERT'], label='Sentiment Model', value='TF-IDF + LR')
+        product_dropdown = gr.Dropdown(
+            choices=DROPDOWN_CHOICES,
+            label='Demo Products',
+            value=DROPDOWN_CHOICES[1]
+        )
+        model_choice = gr.Radio(
+            ['TF-IDF + LR', 'DistilBERT'],
+            label='Sentiment Model',
+            value='TF-IDF + LR'
+        )
 
-    analyse_btn = gr.Button('Analyse', variant='primary')
+    with gr.Accordion('Advanced — Analyse any product (may take several minutes)', open=False):
+        custom_asin = gr.Textbox(label='Custom ASIN', placeholder='e.g. B07XJ8C8F5')
+        gr.Markdown('⚠️ Streams the full dataset. Best used with TF-IDF + LR for speed.')
 
-    status_out    = gr.Textbox(label='Status', interactive=False)
-    sentiment_out = gr.Textbox(label='Sentiment Breakdown', interactive=False, lines=5)
+    analyse_btn   = gr.Button('Analyse', variant='primary')
+    status_out    = gr.Textbox(label='Status',              interactive=False)
+    sentiment_out = gr.Textbox(label='Sentiment Breakdown', interactive=False, lines=6)
 
     with gr.Row():
-        praise_out    = gr.Textbox(label='✅ Top Praise Themes',    interactive=False, lines=7)
-        complaint_out = gr.Textbox(label='⚠️ Top Complaint Themes', interactive=False, lines=7)
+        praise_out    = gr.Textbox(label='✅ Top Praise Themes',    interactive=False, lines=8)
+        complaint_out = gr.Textbox(label='⚠️ Top Complaint Themes', interactive=False, lines=8)
 
     analyse_btn.click(
         fn=analyse,
-        inputs=[asin_input, model_choice],
+        inputs=[product_dropdown, custom_asin, model_choice],
         outputs=[status_out, sentiment_out, praise_out, complaint_out]
     )
-
 
 if __name__ == '__main__':
     demo.launch(share=True)
