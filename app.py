@@ -19,7 +19,8 @@ from src.config import (
     TFIDF_VECTORIZER_PATH,
     LR_MODEL_PATH,
     DISTILBERT_PATH,
-    DEMO_CACHE_PATH
+    DEMO_CACHE_PATH,
+    MODELS_DIR
 )
 
 HF_REPO = 'rithweek/product-voice-analytics-models'
@@ -29,10 +30,10 @@ def download_artifacts():
     os.makedirs(DISTILBERT_PATH, exist_ok=True)
 
     if not os.path.exists(str(TFIDF_VECTORIZER_PATH)):
-        hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir='models', local_dir_use_symlinks=False)
+        hf_hub_download(repo_id=HF_REPO, filename='tfidf_vectorizer.pkl', local_dir=MODELS_DIR, local_dir_use_symlinks=False)
 
     if not os.path.exists(str(LR_MODEL_PATH)):
-        hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir='models', local_dir_use_symlinks=False)
+        hf_hub_download(repo_id=HF_REPO, filename='lr_model.pkl', local_dir=MODELS_DIR, local_dir_use_symlinks=False)
 
     DISTILBERT_CONFIG_PATH = os.path.join(DISTILBERT_PATH, 'config.json')
     if not os.path.exists(DISTILBERT_CONFIG_PATH):
@@ -44,12 +45,12 @@ def download_artifacts():
                 hf_hub_download(
                     repo_id=HF_REPO,
                     filename=filepath,
-                    local_dir=str(DISTILBERT_PATH),
+                    local_dir=str(MODELS_DIR),
                     local_dir_use_symlinks=False
                 )
 
     if not os.path.exists(DEMO_CACHE_PATH):
-        hf_hub_download(repo_id=HF_REPO, filename='demo_cache.json', local_dir='models', local_dir_use_symlinks=False)
+        hf_hub_download(repo_id=HF_REPO, filename='demo_cache.json', local_dir=MODELS_DIR, local_dir_use_symlinks=False)
 
 
 download_artifacts()

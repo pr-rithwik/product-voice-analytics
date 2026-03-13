@@ -12,11 +12,12 @@ PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
 
 
 # model paths
-DISTILBERT_PATH = Path(os.environ.get('DISTILBERT_PATH', str(ROOT / 'models/distilbert')))
-TFIDF_VECTORIZER_PATH = Path(os.environ.get('TFIDF_VECTORIZER_PATH', str(ROOT / 'models/tfidf_vectorizer.pkl')))
-LR_MODEL_PATH = Path(os.environ.get('LR_MODEL_PATH', str(ROOT / 'models/lr_model.pkl')))
-# BEST_MODEL_REF_PATH = Path(os.environ.get('BEST_MODEL_REF_PATH', str(ROOT / 'models/best_model_ref.txt')))
-DEMO_CACHE_PATH = Path(os.environ.get('DEMO_CACHE_PATH', str(ROOT / 'models/demo_cache.json')))
+MODELS_DIR = Path(os.environ.get('MODELS_DIR', str(ROOT / 'models')))
+DISTILBERT_PATH = Path(os.environ.get('DISTILBERT_PATH', str(MODELS_DIR / 'distilbert')))
+TFIDF_VECTORIZER_PATH = Path(os.environ.get('TFIDF_VECTORIZER_PATH', str(MODELS_DIR / 'tfidf_vectorizer.pkl')))
+LR_MODEL_PATH = Path(os.environ.get('LR_MODEL_PATH', str(MODELS_DIR / 'lr_model.pkl')))
+# BEST_MODEL_REF_PATH = Path(os.environ.get('BEST_MODEL_REF_PATH', str(MODELS_DIR / 'best_model_ref.txt')))
+DEMO_CACHE_PATH = Path(os.environ.get('DEMO_CACHE_PATH', str(MODELS_DIR / 'demo_cache.json')))
 
 
 # sampling
