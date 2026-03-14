@@ -72,5 +72,6 @@ dataset-metadata*.json
 upload_app.sh
 upload_src.sh
 
-# Files
+# Files & folders
 app/streamlit.py
+.gradio/
