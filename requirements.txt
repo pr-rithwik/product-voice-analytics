@@ -1,6 +1,6 @@
 # Core
 pandas~=2.3.3
-numpy~=2.0.2
+numpy~=2.1
 
 # Classical ML
 scikit-learn~=1.6.1
