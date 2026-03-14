@@ -10,7 +10,10 @@ def embed_reviews(reviews: list[str]) -> any:
 
 
 def cluster_reviews(reviews: list[str], embeddings) -> tuple[list[int], BERTopic]:
-    topic_model = BERTopic(nr_topics=N_TOPICS, language='english', calculate_probabilities=False)
+    n_topics = min(N_TOPICS, len(reviews) // 5)
+    n_topics = max(n_topics, 2)
+
+    topic_model = BERTopic(nr_topics=n_topics, language='english', calculate_probabilities=False, min_topic_size=3)
     topics, _   = topic_model.fit_transform(reviews, embeddings)
     return topics, topic_model
 

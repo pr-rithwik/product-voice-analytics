@@ -51,6 +51,11 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
         }
 
         embeddings    = embed_reviews(reviews)
+
+        # BERTopic needs enough reviews to cluster
+        if len(reviews) < 10:
+            return f'Not enough reviews for topic analysis (found {len(reviews)}).', '', '', ''
+
         topics, _     = cluster_reviews(reviews, embeddings)
         topic_reviews = build_topic_reviews(reviews, topics)
         praise, complaints = generate_bullets(topic_reviews)
