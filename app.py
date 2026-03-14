@@ -126,22 +126,8 @@ def format_results(total, breakdown, praise, complaints, source, model_used='TF-
 
 def analyse(product_selection, search_result, model_choice):
 
-    # cached demo product
-    if product_selection and product_selection not in ['-- Select a demo product --', 'Custom Search']:
-        asin   = PRODUCT_NAMES[product_selection]
-        result = DEMO_CACHE[asin]
-        sentiment_summary, praise_text, complaint_text = format_results(
-            result['total'],
-            result['breakdown'],
-            result['praise'],
-            result['complaints'],
-            source='pre-computed cache',
-            model_used='TF-IDF + LR (pre-computed)'
-        )
-        return f'✅ Loaded: {product_selection}', sentiment_summary, praise_text, complaint_text
-
-    # live pipeline via product search
-    if product_selection == 'Custom Search' or search_result:
+    # live pipeline takes priority if a search result is selected
+    if search_result:
         asin = resolve_asin(search_result)
         if not asin:
             return 'Product not found. Try a different search term.', '', '', ''
@@ -176,6 +162,20 @@ def analyse(product_selection, search_result, model_choice):
             model_used=model_choice
         )
         return f'✅ Done: {asin} ({total:,} reviews)', sentiment_summary, praise_text, complaint_text
+
+    # cached demo product
+    if product_selection and product_selection not in ['-- Select a demo product --', 'Custom Search']:
+        asin   = PRODUCT_NAMES[product_selection]
+        result = DEMO_CACHE[asin]
+        sentiment_summary, praise_text, complaint_text = format_results(
+            result['total'],
+            result['breakdown'],
+            result['praise'],
+            result['complaints'],
+            source='pre-computed cache',
+            model_used='TF-IDF + LR (pre-computed)'
+        )
+        return f'✅ Loaded: {product_selection}', sentiment_summary, praise_text, complaint_text
 
     return 'Please select a demo product or search for one.', '', '', ''
 

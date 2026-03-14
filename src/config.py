@@ -6,9 +6,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 # data paths
-RAW_REVIEWS_PATH = ROOT / "data/raw/Electronics.json.gz"
-RAW_METADATA_PATH = ROOT / "data/raw/meta_Electronics.json.gz"
-PROCESSED_SAMPLE_PATH = ROOT / "data/processed/sample_100k.csv"
+RAW_REVIEWS_PATH = Path(os.environ.get('RAW_REVIEWS_PATH', str(ROOT / 'data/raw/Electronics.json.gz')))
+RAW_METADATA_PATH = Path(os.environ.get('RAW_METADATA_PATH', str(ROOT / 'data/raw/meta_Electronics.json.gz')))
+PROCESSED_SAMPLE_PATH = Path(os.environ.get('PROCESSED_SAMPLE_PATH', str(ROOT / 'data/processed/sample_100k.csv')))
 
 
 # model paths

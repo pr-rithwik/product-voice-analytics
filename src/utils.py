@@ -13,13 +13,22 @@ def get_device() -> torch.device:
     return torch.device('cpu')
 
 
-def stream_reviews_for_asin(raw_path: str, asin: str) -> list[str]:
+def stream_reviews_for_asin(raw_path, asin, max_reviews=2000):
     reviews = []
-    with gzip.open(raw_path, 'rt', encoding='utf-8') as f:
+    raw_path = str(raw_path)
+    
+    opener = gzip.open if raw_path.endswith('.gz') else open
+    
+    with opener(raw_path, 'rt', encoding='utf-8') as f:
         for line in f:
-            record = json.loads(line)
-            if record.get('asin') == asin:
-                text = record.get('reviewText', '').strip()
-                if text:
-                    reviews.append(text)
+            try:
+                record = json.loads(line)
+                if record.get('asin') == asin:
+                    text = record.get('reviewText', '').strip()
+                    if text:
+                        reviews.append(text)
+                        if len(reviews) >= max_reviews:
+                            break
+            except:
+                continue
     return reviews
