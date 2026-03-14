@@ -1,8 +1,8 @@
 # Shared utility functions used across the project.
-
-import gzip
-import json
 import torch
+import duckdb
+
+from src.config import PARQUET_PATH
 
 
 def get_device() -> torch.device:
@@ -13,22 +13,11 @@ def get_device() -> torch.device:
     return torch.device('cpu')
 
 
-def stream_reviews_for_asin(raw_path, asin, max_reviews=2000):
-    reviews = []
-    raw_path = str(raw_path)
-    
-    opener = gzip.open if raw_path.endswith('.gz') else open
-    
-    with opener(raw_path, 'rt', encoding='utf-8') as f:
-        for line in f:
-            try:
-                record = json.loads(line)
-                if record.get('asin') == asin:
-                    text = record.get('reviewText', '').strip()
-                    if text:
-                        reviews.append(text)
-                        if len(reviews) >= max_reviews:
-                            break
-            except:
-                continue
-    return reviews
+def get_reviews_for_asin(asin, max_reviews=2000):
+    result = duckdb.query(f"""
+        SELECT reviewText
+        FROM '{str(PARQUET_PATH)}'
+        WHERE asin = '{asin}'
+        LIMIT {max_reviews}
+    """).df()
+    return result['reviewText'].tolist()

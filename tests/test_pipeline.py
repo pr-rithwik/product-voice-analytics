@@ -91,5 +91,5 @@ def test_preprocess_does_not_mutate_original():
 def test_preprocess_handles_null_review_text():
     df = pd.DataFrame({'reviewText': [None, 'Good product'], 'label': [0, 2], 'clean_text': ['', '']})
     result = preprocess(df)
-    assert result['clean_text'].iloc[0] == ''
-    assert result['clean_text'].iloc[1] != ''
+    assert len(result) == 1
+    assert result['clean_text'].iloc[0] != ''

@@ -1,10 +1,9 @@
 # app/handlers.py — core analysis logic
-from src.utils import stream_reviews_for_asin
+from src.utils import get_reviews_for_asin
 from src.pipeline.preprocess import clean_text
 from src.pipeline.sentiment import predict_tfidf, predict_distilbert
 from src.intelligence.clustering import embed_reviews, cluster_reviews, build_topic_reviews
 from src.intelligence.summarizer import generate_bullets
-from src.config import RAW_REVIEWS_PATH
 
 from app import resolve_asin
 
@@ -31,7 +30,7 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
         if not asin:
             return 'Product not found. Try a different search term.', '', '', ''
 
-        reviews = stream_reviews_for_asin(str(RAW_REVIEWS_PATH), asin)
+        reviews = get_reviews_for_asin(asin)
         if not reviews:
             return f'No reviews found for ASIN {asin}.', '', '', ''
 
@@ -53,7 +52,7 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
         embeddings    = embed_reviews(reviews)
 
         # BERTopic needs enough reviews to cluster
-        if len(reviews) < 10:
+        if len(reviews) < 50:
             return f'Not enough reviews for topic analysis (found {len(reviews)}).', '', '', ''
 
         topics, _     = cluster_reviews(reviews, embeddings)

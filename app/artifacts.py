@@ -8,7 +8,8 @@ from src.config import (
     DISTILBERT_PATH,
     DEMO_CACHE_PATH,
     MODELS_DIR,
-    PRODUCT_LOOKUP_PATH
+    PRODUCT_LOOKUP_PATH,
+    PARQUET_PATH
 )
 
 HF_REPO = 'rithweek/product-voice-analytics-models'
@@ -43,3 +44,12 @@ def download_artifacts():
 
     if not os.path.exists(str(PRODUCT_LOOKUP_PATH)):
         hf_hub_download(repo_id=HF_REPO, filename='product_lookup.csv', local_dir=str(MODELS_DIR), local_dir_use_symlinks=False)
+
+    if not os.path.exists(str(PARQUET_PATH)):
+        hf_hub_download(
+            repo_id='rithweek/amazon-electronics-reviews-parquet',
+            filename='reviews.parquet',
+            local_dir=str(MODELS_DIR),
+            repo_type='dataset',
+            local_dir_use_symlinks=False
+        )
