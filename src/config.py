@@ -18,6 +18,7 @@ TFIDF_VECTORIZER_PATH = Path(os.environ.get('TFIDF_VECTORIZER_PATH', str(MODELS_
 LR_MODEL_PATH = Path(os.environ.get('LR_MODEL_PATH', str(MODELS_DIR / 'lr_model.pkl')))
 # BEST_MODEL_REF_PATH = Path(os.environ.get('BEST_MODEL_REF_PATH', str(MODELS_DIR / 'best_model_ref.txt')))
 DEMO_CACHE_PATH = Path(os.environ.get('DEMO_CACHE_PATH', str(MODELS_DIR / 'demo_cache.json')))
+PRODUCT_LOOKUP_PATH = Path(os.environ.get('PRODUCT_LOOKUP_PATH', str(MODELS_DIR / 'product_lookup.csv')))
 
 
 # sampling

@@ -24,3 +24,6 @@ huggingface_hub
 
 # Utilities
 tqdm>=4.65.0
+
+# Databases
+duckdb
