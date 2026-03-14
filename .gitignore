@@ -71,3 +71,6 @@ dataset-metadata*.json
 .kaggleignore
 upload_app.sh
 upload_src.sh
+
+# Files
+app/streamlit.py
