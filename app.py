@@ -82,23 +82,27 @@ PRODUCT_NAMES    = {v['name']: k for k, v in DEMO_CACHE.items()}
 DROPDOWN_CHOICES = ['-- Select a demo product --'] + list(PRODUCT_NAMES.keys()) + ['Custom Search']
 
 
-def search_products(query, limit=20):
-    if not query or len(query.strip()) < 2:
-        return []
+def search_products(query):
+    if not query or not isinstance(query, str) or len(query.strip()) < 2:
+        return gr.Dropdown(choices=[], value=None)
     result = duckdb.query(f"""
-        SELECT asin, title
+        SELECT title
         FROM '{str(PRODUCT_LOOKUP_PATH)}'
         WHERE title ILIKE '%{query.strip()}%'
-        LIMIT {limit}
+        LIMIT 20
     """).df()
-    return result['title'].tolist()
+    choices = result['title'].tolist()
+    return gr.Dropdown(choices=choices, value=None)
 
 
 def resolve_asin(title):
+    if not title:
+        return ''
+    safe_title = title.replace("'", "''")
     result = duckdb.query(f"""
         SELECT asin
         FROM '{str(PRODUCT_LOOKUP_PATH)}'
-        WHERE title = '{title.replace("'", "''")}'
+        WHERE title = '{safe_title}'
         LIMIT 1
     """).df()
     if result.empty:
@@ -120,7 +124,7 @@ def format_results(total, breakdown, praise, complaints, source, model_used='TF-
     return sentiment_summary, praise_text, complaint_text
 
 
-def analyse(product_selection, product_search, model_choice):
+def analyse(product_selection, search_result, model_choice):
 
     # cached demo product
     if product_selection and product_selection not in ['-- Select a demo product --', 'Custom Search']:
@@ -137,8 +141,8 @@ def analyse(product_selection, product_search, model_choice):
         return f'✅ Loaded: {product_selection}', sentiment_summary, praise_text, complaint_text
 
     # live pipeline via product search
-    if product_selection == 'Custom Search' or product_search:
-        asin = resolve_asin(product_search)
+    if product_selection == 'Custom Search' or search_result:
+        asin = resolve_asin(search_result)
         if not asin:
             return 'Product not found. Try a different search term.', '', '', ''
 
@@ -193,11 +197,14 @@ with gr.Blocks(title='Product Voice Analytics') as demo:
         )
 
     with gr.Accordion('Advanced — Analyse any product (may take several minutes)', open=False):
-        product_search = gr.Dropdown(
-            choices=[],
+        product_search = gr.Textbox(
             label='Search Product by Name',
-            allow_custom_value=True,
-            filterable=True
+            placeholder='Type to search e.g. Sony headphones'
+        )
+        search_results = gr.Dropdown(
+            choices=[],
+            label='Select from results',
+            interactive=True
         )
         gr.Markdown('⚠️ Streams the full dataset. Best used with TF-IDF + LR for speed.')
 
@@ -211,13 +218,13 @@ with gr.Blocks(title='Product Voice Analytics') as demo:
 
     product_search.change(
         fn=search_products,
-        inputs=product_search,
-        outputs=product_search
+        inputs=[product_search],
+        outputs=[search_results]
     )
 
     analyse_btn.click(
         fn=analyse,
-        inputs=[product_dropdown, product_search, model_choice],
+        inputs=[product_dropdown, search_results, model_choice],
         outputs=[status_out, sentiment_out, praise_out, complaint_out]
     )
 
