@@ -2,7 +2,7 @@
 import torch
 import duckdb
 
-from src.config import PARQUET_PATH
+from constants import PARQUET_PATH
 
 
 def get_device() -> torch.device:

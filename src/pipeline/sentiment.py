@@ -2,15 +2,16 @@ import torch
 import joblib
 from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
 from sklearn.pipeline import Pipeline
+
 from src.config import (
-    TFIDF_VECTORIZER_PATH,
-    LR_MODEL_PATH,
-    DISTILBERT_PATH,
-    DISTILBERT_MAX_LEN,
-    DISTILBERT_BATCH_SIZE,
+    DISTILBERT_MAX_LEN, DISTILBERT_BATCH_SIZE, LABEL_MAP
 )
 
-LABEL_MAP = {0: 'negative', 1: 'neutral', 2: 'positive'}
+from constants import (
+    TFIDF_VECTORIZER_PATH,
+    LR_MODEL_PATH,
+    DISTILBERT_DIR
+)
 
 
 def get_device() -> torch.device:
@@ -39,13 +40,13 @@ def load_model(model_type: str) -> tuple:
     """
     if model_type == 'tfidf':
         vectorizer = joblib.load(TFIDF_VECTORIZER_PATH)
-        lr_model   = joblib.load(LR_MODEL_PATH)
+        lr_model = joblib.load(LR_MODEL_PATH)
         return Pipeline([('tfidf', vectorizer), ('lr', lr_model)]), None
         
     elif model_type == 'distilbert':
-        tokenizer = DistilBertTokenizerFast.from_pretrained(DISTILBERT_PATH)
-        model     = DistilBertForSequenceClassification.from_pretrained(DISTILBERT_PATH)
-        model     = model.to(get_device())
+        tokenizer = DistilBertTokenizerFast.from_pretrained(DISTILBERT_DIR)
+        model = DistilBertForSequenceClassification.from_pretrained(DISTILBERT_DIR)
+        model = model.to(get_device())
         model.eval()
         return model, tokenizer
 
@@ -94,32 +95,13 @@ def predict_distilbert(model, tokenizer, texts: list[str]) -> list[str]:
             return_tensors='pt'
         )
 
-        input_ids      = encodings['input_ids'].to(device)
+        input_ids = encodings['input_ids'].to(device)
         attention_mask = encodings['attention_mask'].to(device)
 
         with torch.no_grad():
             outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-            preds   = torch.argmax(outputs.logits, dim=1).cpu().tolist()
+            preds = torch.argmax(outputs.logits, dim=1).cpu().tolist()
 
         all_preds.extend(preds)
 
     return [LABEL_MAP[p] for p in all_preds]
-
-
-def predict(model_type: str, texts: list[str]) -> list[str]:
-    """
-    Top-level inference function. Loads model and runs prediction.
-
-    Args:
-        model_type: 'tfidf' or 'distilbert'
-        texts:      list of cleaned review strings
-
-    Returns:
-        list of label strings
-    """
-    model, tokenizer = load_model(model_type)
-
-    if model_type == 'tfidf':
-        return predict_tfidf(model, texts)
-    else:
-        return predict_distilbert(model, tokenizer, texts)

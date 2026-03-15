@@ -3,23 +3,13 @@
 import os
 from pathlib import Path
 
+from constants import DATA_PROCESSED_DIR
 ROOT = Path(__file__).resolve().parent.parent
 
 # data paths
 RAW_REVIEWS_PATH = Path(os.environ.get('RAW_REVIEWS_PATH', str(ROOT / 'data/raw/Electronics.json.gz')))
 RAW_METADATA_PATH = Path(os.environ.get('RAW_METADATA_PATH', str(ROOT / 'data/raw/meta_Electronics.json.gz')))
-PROCESSED_SAMPLE_PATH = Path(os.environ.get('PROCESSED_SAMPLE_PATH', str(ROOT / 'data/processed/sample_100k.csv')))
-
-
-# model paths
-MODELS_DIR = Path(os.environ.get('MODELS_DIR', str(ROOT / 'models')))
-DISTILBERT_PATH = Path(os.environ.get('DISTILBERT_PATH', str(MODELS_DIR / 'distilbert')))
-TFIDF_VECTORIZER_PATH = Path(os.environ.get('TFIDF_VECTORIZER_PATH', str(MODELS_DIR / 'tfidf_vectorizer.pkl')))
-LR_MODEL_PATH = Path(os.environ.get('LR_MODEL_PATH', str(MODELS_DIR / 'lr_model.pkl')))
-# BEST_MODEL_REF_PATH = Path(os.environ.get('BEST_MODEL_REF_PATH', str(MODELS_DIR / 'best_model_ref.txt')))
-DEMO_CACHE_PATH = Path(os.environ.get('DEMO_CACHE_PATH', str(MODELS_DIR / 'demo_cache.json')))
-PRODUCT_LOOKUP_PATH = Path(os.environ.get('PRODUCT_LOOKUP_PATH', str(MODELS_DIR / 'product_lookup.csv')))
-PARQUET_PATH = Path(os.environ.get('PARQUET_PATH', str(MODELS_DIR / 'reviews.parquet')))
+PROCESSED_SAMPLE_PATH = Path(os.environ.get('PROCESSED_SAMPLE_PATH', str(DATA_PROCESSED_DIR / 'sample_100k.csv')))
 
 # sampling
 SAMPLE_SIZE = 100_000
@@ -31,6 +21,11 @@ CLASS_PROPORTIONS = {
     2: 0.70,  # positive (4-5 stars)
 }
 
+LABEL_MAP = {
+    0: 'negative',
+    1: 'neutral',
+    2: 'positive'
+}
 
 # train/test split
 TEST_SIZE = 0.2

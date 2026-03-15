@@ -2,7 +2,7 @@
 import duckdb
 import gradio as gr
 
-from src.config import PRODUCT_LOOKUP_PATH
+from constants import PRODUCT_LOOKUP_PATH
 
 
 def search_products(query):

@@ -8,11 +8,12 @@ import joblib
 from sklearn.pipeline import Pipeline
 
 from src.pipeline.sentiment import load_model
-from src.config import TFIDF_VECTORIZER_PATH, LR_MODEL_PATH, DEMO_CACHE_PATH
+from constants import TFIDF_VECTORIZER_PATH, LR_MODEL_PATH, DEMO_CACHE_PATH
 
-from app import download_artifacts, build_ui
+from app import ensure_dirs, download_artifacts, build_ui
 
-# download all artifacts from HuggingFace
+# create folders & download all artifacts from HuggingFace
+ensure_dirs()
 download_artifacts()
 
 # load models
@@ -38,4 +39,5 @@ demo = build_ui(
 )
 
 if __name__ == '__main__':
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    # demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(share=True)

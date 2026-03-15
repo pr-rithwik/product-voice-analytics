@@ -75,3 +75,4 @@ upload_src.sh
 # Files & folders
 app/streamlit.py
 .gradio/
+.pytest_cache/
