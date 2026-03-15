@@ -20,9 +20,9 @@ Start with an action verb.
 Return only the bullet text, nothing else."""
 
     response = client.messages.create(
-        model      = 'claude-haiku-4-5-20251001',
+        model = 'claude-haiku-4-5-20251001',
         max_tokens = 60,
-        messages   = [{'role': 'user', 'content': prompt}]
+        messages = [{'role': 'user', 'content': prompt}]
     )
 
     return response.content[0].text.strip()
@@ -31,10 +31,10 @@ Return only the bullet text, nothing else."""
 def generate_bullets(topic_reviews: dict[int, list[str]]) -> tuple[list[str], list[str]]:
     sorted_topics = sorted(topic_reviews.keys(), key=lambda tid: len(topic_reviews[tid]), reverse=True)
 
-    praise_ids    = sorted_topics[:N_BULLETS]
+    praise_ids = sorted_topics[:N_BULLETS]
     complaint_ids = sorted_topics[N_BULLETS:N_BULLETS * 2]
 
-    praise_bullets    = [summarize_topic(topic_reviews[tid], 'praise')    for tid in praise_ids]
+    praise_bullets = [summarize_topic(topic_reviews[tid], 'praise')    for tid in praise_ids]
     complaint_bullets = [summarize_topic(topic_reviews[tid], 'complaint') for tid in complaint_ids]
 
     return praise_bullets, complaint_bullets

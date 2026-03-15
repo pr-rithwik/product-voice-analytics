@@ -17,7 +17,7 @@ def format_results(total, breakdown, praise, complaints, source, model_used='TF-
         f"😐 Neutral:  {breakdown['neutral']}%\n"
         f"❌ Negative: {breakdown['negative']}%"
     )
-    praise_text    = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
+    praise_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
     complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaints, 1)])
     return sentiment_summary, praise_text, complaint_text
 
@@ -42,20 +42,20 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
         else:
             labels = predict_tfidf(tfidf_pipeline, clean_reviews)
 
-        total     = len(labels)
+        total = len(labels)
         breakdown = {
             'positive': round(labels.count('positive') / total * 100, 1),
             'neutral':  round(labels.count('neutral')  / total * 100, 1),
             'negative': round(labels.count('negative') / total * 100, 1),
         }
 
-        embeddings    = embed_reviews(reviews)
+        embeddings = embed_reviews(reviews)
 
         # BERTopic needs enough reviews to cluster
         if len(reviews) < 50:
             return f'Not enough reviews for topic analysis (found {len(reviews)}).', '', '', ''
 
-        topics, _     = cluster_reviews(reviews, embeddings)
+        topics, _ = cluster_reviews(reviews, embeddings)
         topic_reviews = build_topic_reviews(reviews, topics)
         praise, complaints = generate_bullets(topic_reviews)
 
@@ -68,7 +68,7 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
 
     # cached demo product
     if product_selection and product_selection not in ['-- Select a demo product --', 'Custom Search']:
-        asin   = product_names[product_selection]
+        asin = product_names[product_selection]
         result = demo_cache[asin]
         sentiment_summary, praise_text, complaint_text = format_results(
             result['total'],

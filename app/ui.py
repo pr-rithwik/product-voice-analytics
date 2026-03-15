@@ -45,12 +45,12 @@ def build_ui(tfidf_pipeline, distilbert_model, distilbert_tokenizer, demo_cache,
             )
             gr.Markdown('⚠️ Only products with 50+ reviews are shown. Streams the full dataset. Best used with TF-IDF + LR for speed.')
 
-        analyse_btn   = gr.Button('Analyse', variant='primary')
-        status_out    = gr.Textbox(label='Status',              interactive=False)
+        analyse_btn = gr.Button('Analyse', variant='primary')
+        status_out = gr.Textbox(label='Status', interactive=False)
         sentiment_out = gr.Textbox(label='Sentiment Breakdown', interactive=False, lines=6)
 
         with gr.Row():
-            praise_out    = gr.Textbox(label='✅ Top Praise Themes',    interactive=False, lines=8)
+            praise_out = gr.Textbox(label='✅ Top Praise Themes', interactive=False, lines=8)
             complaint_out = gr.Textbox(label='⚠️ Top Complaint Themes', interactive=False, lines=8)
 
         product_search.change(

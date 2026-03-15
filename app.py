@@ -17,8 +17,8 @@ ensure_dirs()
 download_artifacts()
 
 # load models
-vectorizer     = joblib.load(str(TFIDF_VECTORIZER_PATH))
-lr_model       = joblib.load(str(LR_MODEL_PATH))
+vectorizer = joblib.load(str(TFIDF_VECTORIZER_PATH))
+lr_model = joblib.load(str(LR_MODEL_PATH))
 tfidf_pipeline = Pipeline([('tfidf', vectorizer), ('lr', lr_model)])
 
 distilbert_model, distilbert_tokenizer = load_model('distilbert')

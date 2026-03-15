@@ -50,8 +50,8 @@ def reservoir_sample(raw_path: str, total_n: int, proportions: dict,
 
     with gzip.open(raw_path, 'rt', encoding='utf-8') as f:
         for line in f:
-            record     = json.loads(line)
-            has_text   = bool(record.get('reviewText', '').strip())
+            record = json.loads(line)
+            has_text = bool(record.get('reviewText', '').strip())
             has_rating = record.get('overall') is not None
             if not (has_text and has_rating):
                 continue
@@ -59,7 +59,7 @@ def reservoir_sample(raw_path: str, total_n: int, proportions: dict,
             label = rating_to_label(float(record['overall']))
             counts[label] += 1
             reservoir = reservoirs[label]
-            target    = targets[label]
+            target = targets[label]
 
             if len(reservoir) < target:
                 reservoir.append({
