@@ -43,12 +43,12 @@ Gradio App → HuggingFace Spaces
 
 ## Model Performance
 
+TF-IDF + LR outperforms DistilBERT on macro-F1 for this dataset. Short, explicit product review text favours sparse feature models — DistilBERT's advantage shows up more on ambiguous or longer-form text where contextual embeddings matter.
+
 | Model | Accuracy | Macro-F1 | Inference (s/1k reviews) |
 |---|---|---|---|
 | TF-IDF + Logistic Regression | 0.8279 | 0.7278 | 0.04 |
 | DistilBERT (fine-tuned) | 0.7849 | 0.5064 | 3.29 |
-
-TF-IDF + LR outperforms DistilBERT on macro-F1 for this dataset. Short, explicit product review text favours sparse feature models — DistilBERT's advantage shows up more on ambiguous or longer-form text where contextual embeddings matter.
 
 DistilBERT was trained for 10 epochs (LR=2e-5, batch=64) with best checkpoint saved at epoch 6 (val_loss=0.5908, val_F1=0.4933).
 

@@ -1,4 +1,4 @@
-# app/artifacts.py — downloads models and data from HuggingFace at startup
+# downloads models and data from HuggingFace at startup
 import os
 from huggingface_hub import HfApi, hf_hub_download
 

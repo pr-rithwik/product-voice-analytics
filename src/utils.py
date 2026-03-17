@@ -14,6 +14,13 @@ def get_device() -> torch.device:
 
 
 def get_reviews_for_asin(asin, max_reviews=2000):
+    """
+    Get reviews for a specific ASIN from the DuckDB database.
+    The results are usually the same but not guaranteed to be identical.
+    To be specific we can use one of the following ORDER BY clauses:
+    ORDER BY random()
+    ORDER BY rowid
+    """
     result = duckdb.query(f"""
         SELECT reviewText
         FROM '{str(PARQUET_PATH)}'

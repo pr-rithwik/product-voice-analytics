@@ -1,4 +1,4 @@
-# app/search.py — product search and ASIN resolution via DuckDB
+# product search and ASIN resolution via DuckDB
 import duckdb
 import gradio as gr
 

@@ -11,13 +11,16 @@ def summarize_topic(reviews: list[str], sentiment: str) -> str:
 
     prompt = f"""You are analyzing Amazon Electronics product reviews.
 
-The following reviews share a common {sentiment} theme:
+    The following reviews share a common {sentiment} theme:
 
-{reviews_block}
+    {reviews_block}
 
-Summarize the core {sentiment} theme into ONE concise bullet point (max 20 words).
-Start with an action verb.
-Return only the bullet text, nothing else."""
+    Summarize the core {sentiment} theme into ONE concise bullet point (max 20 words).
+    Start with an action verb.
+    Return only the bullet text, nothing else.
+    
+    If no clear complaint exists, identify the mildest criticism or a suggested improvement.
+    Never say you cannot find a theme — always return a bullet."""
 
     response = client.messages.create(
         model = 'claude-haiku-4-5-20251001',

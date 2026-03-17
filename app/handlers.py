@@ -8,6 +8,32 @@ from src.intelligence.summarizer import generate_bullets
 from app import resolve_asin
 
 
+def is_valid_bullet(bullet: str) -> bool:
+    skip_prefixes = (
+        "I cannot",
+        "I don't",
+        "I appreciate",
+        "I understand",
+        "I can't",
+        "I need",
+        "If you",
+        "Note that",
+        "Please provide",
+    )
+    skip_substrings = (
+        "these reviews",
+        "no complaint",
+        "all positive",
+        "only positive",
+    )
+    b = bullet.strip()
+    if any(b.startswith(p) for p in skip_prefixes):
+        return False
+    if any(s.lower() in b.lower() for s in skip_substrings):
+        return False
+    return True
+
+
 def format_results(total, breakdown, praise, complaints, source, model_used='TF-IDF + LR'):
     sentiment_summary = (
         f"Source: {source}\n"
@@ -17,8 +43,10 @@ def format_results(total, breakdown, praise, complaints, source, model_used='TF-
         f"😐 Neutral:  {breakdown['neutral']}%\n"
         f"❌ Negative: {breakdown['negative']}%"
     )
-    praise_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)])
-    complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaints, 1)])
+    praise = [b for b in praise if is_valid_bullet(b)]
+    complaints = [b for b in complaints if is_valid_bullet(b)]
+    praise_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(praise, 1)]) or 'No strong praise themes identified.'
+    complaint_text = '\n'.join([f'{i}. {b}' for i, b in enumerate(complaints, 1)]) or 'No strong complaint themes identified.'
     return sentiment_summary, praise_text, complaint_text
 
 
@@ -49,15 +77,27 @@ def analyse(product_selection, search_result, model_choice, tfidf_pipeline, dist
             'negative': round(labels.count('negative') / total * 100, 1),
         }
 
-        embeddings = embed_reviews(reviews)
-
         # BERTopic needs enough reviews to cluster
         if len(reviews) < 50:
             return f'Not enough reviews for topic analysis (found {len(reviews)}).', '', '', ''
 
-        topics, _ = cluster_reviews(reviews, embeddings)
-        topic_reviews = build_topic_reviews(reviews, topics)
-        praise, complaints = generate_bullets(topic_reviews)
+        # split by sentiment before clustering so Claude always summarizes the right group
+        positive_reviews = [r for r, l in zip(reviews, labels) if l == 'positive']
+        negative_reviews = [r for r, l in zip(reviews, labels) if l == 'negative']
+
+        praise, complaints = [], []
+
+        if len(positive_reviews) >= 10:
+            pos_embeddings = embed_reviews(positive_reviews)
+            pos_topics, _ = cluster_reviews(positive_reviews, pos_embeddings)
+            pos_topic_reviews = build_topic_reviews(positive_reviews, pos_topics)
+            praise, _ = generate_bullets(pos_topic_reviews)
+
+        if len(negative_reviews) >= 10:
+            neg_embeddings = embed_reviews(negative_reviews)
+            neg_topics, _ = cluster_reviews(negative_reviews, neg_embeddings)
+            neg_topic_reviews = build_topic_reviews(negative_reviews, neg_topics)
+            _, complaints = generate_bullets(neg_topic_reviews)
 
         sentiment_summary, praise_text, complaint_text = format_results(
             total, breakdown, praise, complaints,

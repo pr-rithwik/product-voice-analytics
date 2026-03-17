@@ -1,4 +1,4 @@
-# app/ui.py — gradio UI components and event bindings
+# gradio UI components and event bindings
 import gradio as gr
 from functools import partial
 
