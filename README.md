@@ -29,7 +29,7 @@ Product teams spend hours reading reviews to understand what customers love or h
 ## Architecture
 
 ```
-Raw Reviews (20M+ records, ~22GB)
+Raw Reviews (20M+ records, ~12GB)
         ↓
 Reservoir Sampling → stratified 100K sample
         ↓
@@ -127,7 +127,7 @@ product-voice-analytics/
 
 ## Key Design Decisions
 
-**Reservoir sampling over load-then-sample** — the raw file is 22GB and won't fit in memory. Reservoir sampling reads the file once in a single pass and maintains a fixed-size sample with guaranteed statistical properties, making it memory-bounded regardless of dataset size.
+**Reservoir sampling over load-then-sample** — the raw file is 12GB and won't fit in memory. Reservoir sampling reads the file once in a single pass and maintains a fixed-size sample with guaranteed statistical properties, making it memory-bounded regardless of dataset size.
 
 **TF-IDF wins on macro-F1** — DistilBERT underperforms on the neutral class (3-star reviews) because neutral Amazon reviews are linguistically ambiguous. TF-IDF's explicit feature representation handles the class boundary more cleanly on short product text.
 
