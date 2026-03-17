@@ -1,16 +1,27 @@
 # Product Voice Analytics
 
-An end-to-end NLP pipeline that turns Amazon Electronics reviews into actionable product intelligence. Input a product name, get a sentiment breakdown and the top praise and complaint themes — distilled from thousands of reviews into plain English bullets.
+Product teams spend hours reading reviews to understand what customers love or hate. This pipeline automates that: input a product name or ASIN, get a sentiment breakdown and top praise and complaint themes — distilled from thousands of reviews into plain-English bullets in seconds.
 
-**[Live Demo](https://huggingface.co/spaces/rithweek/product-voice-analytics)** · **[Model Hub](https://huggingface.co/rithweek/product-voice-analytics-models)**
+[![Live Demo](https://img.shields.io/badge/Live_Demo-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/rithweek/product-voice-analytics)
+[![Model Hub](https://img.shields.io/badge/Model_Hub-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/rithweek/product-voice-analytics-models)
+
+---
+
+## Demo
+
+![Demo 1](assets/search_1.png)
+![Demo 2](assets/search_2.png)
+
+> Live analysis takes 2-5 minutes on CPU (free HuggingFace tier). Screenshots above show a live pipeline result — use the Advanced search box to analyse any product by name or ASIN.
 
 ---
 
 ## What it does
 
 - Classifies reviews as positive, neutral, or negative using two models — a TF-IDF + Logistic Regression baseline and a fine-tuned DistilBERT
-- Clusters review text into topics using BERTopic and sentence-transformers embeddings
+- Clusters positive and negative reviews separately into topics using BERTopic and sentence-transformers embeddings
 - Summarises each topic cluster into praise and complaint bullets via the Claude API
+- Accepts product name or ASIN in the Advanced search box — ASIN is more precise for products with generic names
 - Serves results through a Gradio app on HuggingFace Spaces with pre-computed cache for instant demo results and a live analysis path for any product
 
 ---
@@ -32,6 +43,7 @@ Preprocessing
 └──────────────────────────────────────┘
         ↓
 Topic Intelligence Layer
+  → Split by sentiment (positive → praise path, negative → complaint path)
   → sentence-transformers embeddings (all-MiniLM-L6-v2)
   → BERTopic clustering
   → Claude API summarization
@@ -43,7 +55,7 @@ Gradio App → HuggingFace Spaces
 
 ## Model Performance
 
-TF-IDF + LR outperforms DistilBERT on macro-F1 for this dataset. Short, explicit product review text favours sparse feature models — DistilBERT's advantage shows up more on ambiguous or longer-form text where contextual embeddings matter.
+**Counterintuitive result:** TF-IDF + Logistic Regression outperforms fine-tuned DistilBERT on macro-F1 for this dataset. Short, explicit product review text ("great cable, works perfectly") favours sparse feature models — DistilBERT's advantage shows up on ambiguous or longer-form text where contextual embeddings matter. The 3-star neutral class is particularly hard for DistilBERT because neutral Amazon reviews are linguistically similar to both positive and negative ones.
 
 | Model | Accuracy | Macro-F1 | Inference (s/1k reviews) |
 |---|---|---|---|
@@ -119,11 +131,21 @@ product-voice-analytics/
 
 **TF-IDF wins on macro-F1** — DistilBERT underperforms on the neutral class (3-star reviews) because neutral Amazon reviews are linguistically ambiguous. TF-IDF's explicit feature representation handles the class boundary more cleanly on short product text.
 
-**Parquet + DuckDB over streaming** — the original implementation streamed the full 22GB JSON line by line to find reviews for a given ASIN, taking 10+ minutes. Converting to Parquet and querying with DuckDB reduces this to sub-second lookup via columnar storage and predicate pushdown.
+**Sentiment-split clustering** — the naive approach sends all reviews to BERTopic regardless of sentiment, then asks Claude to extract complaint themes from clusters that may be entirely positive. Instead, positive and negative reviews are split by sentiment label before clustering — praise path gets positive reviews, complaint path gets negative ones. This ensures Claude always summarizes the right sentiment group.
+
+**Parquet + DuckDB over streaming** — the original implementation streamed the full 12GB JSON line by line to find reviews for a given ASIN, taking 10+ minutes. Converting to Parquet and querying with DuckDB reduces this to sub-second lookup via columnar storage and predicate pushdown.
 
 **Pre-computed cache for demo** — running the full pipeline live takes several minutes on CPU. The app pre-computes results for the top products and serves them instantly, with the live pipeline available for any other product.
 
 **Modular app structure** — `app/` is split into `artifacts.py`, `handlers.py`, `search.py`, and `ui.py` with single responsibilities. `app.py` at root is a thin entry point that wires them together — required by HuggingFace Spaces.
+
+---
+
+## Known Limitations
+
+- **Demo dropdown and Advanced search are independent** — selecting a product from the demo dropdown and also having a search result selected will prioritise the search result. Clear the search dropdown before using demo products to avoid confusion.
+- **Live pipeline runs on CPU** — analysis takes 2-5 minutes depending on review volume. Pre-computed cache products load instantly.
+- **50 review minimum** for topic clustering — products with fewer reviews return sentiment breakdown only.
 
 ---
 
